@@ -1,0 +1,28 @@
+{
+  "name": "usmortgagecalc-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OpenAPI and MCP specifications, SDKs, Postman collection and integration examples for the US Mortgage Calculator API",
+  "type": "module",
+  "license": "MIT",
+  "homepage": "https://www.usmortgagecalc.com/developers",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chetanmane/usmortgagecalc-api.git"
+  },
+  "scripts": {
+    "verify": "node scripts/verify.mjs",
+    "sync": "node scripts/sync-specs.mjs",
+    "postman": "node scripts/build-postman.mjs"
+  },
+  "keywords": [
+    "mortgage",
+    "mortgage-calculator",
+    "openapi",
+    "mcp",
+    "model-context-protocol",
+    "rest-api",
+    "property-tax",
+    "sdk"
+  ]
+}

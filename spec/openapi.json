@@ -1,0 +1,1748 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "US Mortgage Calculator API",
+    "version": "1.0.0",
+    "description": "US mortgage calculations and 50-state property tax reference data. Every endpoint is a pure function: the same request always returns the same response, nothing is stored, and no authentication is required for the public tier.\n\nThese are estimates built from published averages, not loan offers or rate quotes.",
+    "contact": {
+      "name": "US Mortgage Calculator",
+      "url": "https://www.usmortgagecalc.com/contact"
+    },
+    "license": {
+      "name": "Free for use with attribution",
+      "url": "https://www.usmortgagecalc.com/terms"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://www.usmortgagecalc.com",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/api/v1/calculate-mortgage": {
+      "post": {
+        "operationId": "calculate_mortgage",
+        "summary": "Calculate a monthly mortgage payment",
+        "description": "Full monthly housing cost for a US mortgage: principal and interest, property tax, homeowners insurance, mortgage insurance and HOA dues, plus lifetime totals and payoff timing. Pass a state name to use that state's average property tax rate. This is the right tool for 'what would my payment be on a $400,000 house'.",
+        "tags": [
+          "calculations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "description": "Full monthly housing cost: principal, interest, taxes, insurance, PMI and HOA.",
+                "type": "object",
+                "properties": {
+                  "homePrice": {
+                    "description": "Purchase price of the home in US dollars.",
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000000
+                  },
+                  "downPaymentPercent": {
+                    "default": 20,
+                    "description": "Down payment as a percentage of the purchase price, 0 to 100. Not a dollar amount.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "annualInterestRatePercent": {
+                    "default": 6.5,
+                    "description": "Annual nominal interest rate as a percentage, for example 6.5 for 6.5%.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 30
+                  },
+                  "loanTermYears": {
+                    "default": 30,
+                    "description": "Loan term in years. Most US mortgages are 15 or 30.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "loanType": {
+                    "default": "conventional",
+                    "description": "Loan programme. Affects mortgage insurance and upfront fees.",
+                    "type": "string",
+                    "enum": [
+                      "conventional",
+                      "fha",
+                      "va",
+                      "usda"
+                    ]
+                  },
+                  "annualInsurance": {
+                    "description": "Annual homeowners insurance premium in US dollars.",
+                    "default": 1800,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "monthlyHoa": {
+                    "description": "Monthly homeowners association dues in US dollars.",
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "monthlyExtraPrincipal": {
+                    "description": "Additional principal paid each month. Shortens the loan rather than lowering the payment.",
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "state": {
+                    "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "propertyTaxRatePercent": {
+                    "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10
+                  }
+                },
+                "required": [
+                  "homePrice"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculation result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "The calculation result."
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "operation": {
+                          "type": "string"
+                        },
+                        "computedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input failed validation. The message names the offending field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Retry after the interval in Retry-After."
+          }
+        }
+      }
+    },
+    "/api/v1/calculate-amortization": {
+      "post": {
+        "operationId": "calculate_amortization",
+        "summary": "Build an amortization schedule",
+        "description": "Payment-by-payment breakdown of how a loan is repaid, showing the split between principal and interest and the falling balance. Use granularity 'monthly' for the first years in detail, 'yearly' for a whole-term overview. Also reports how much sooner extra principal pays the loan off.",
+        "tags": [
+          "calculations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "description": "Amortization schedule showing how each payment splits between principal and interest.",
+                "type": "object",
+                "properties": {
+                  "homePrice": {
+                    "description": "Purchase price of the home in US dollars.",
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000000
+                  },
+                  "downPaymentPercent": {
+                    "default": 20,
+                    "description": "Down payment as a percentage of the purchase price, 0 to 100. Not a dollar amount.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "annualInterestRatePercent": {
+                    "default": 6.5,
+                    "description": "Annual nominal interest rate as a percentage, for example 6.5 for 6.5%.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 30
+                  },
+                  "loanTermYears": {
+                    "default": 30,
+                    "description": "Loan term in years. Most US mortgages are 15 or 30.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "loanType": {
+                    "default": "conventional",
+                    "description": "Loan programme. Affects mortgage insurance and upfront fees.",
+                    "type": "string",
+                    "enum": [
+                      "conventional",
+                      "fha",
+                      "va",
+                      "usda"
+                    ]
+                  },
+                  "annualInsurance": {
+                    "description": "Annual homeowners insurance premium in US dollars.",
+                    "default": 1800,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "monthlyHoa": {
+                    "description": "Monthly homeowners association dues in US dollars.",
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "monthlyExtraPrincipal": {
+                    "description": "Additional principal paid each month. Shortens the loan rather than lowering the payment.",
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "state": {
+                    "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "propertyTaxRatePercent": {
+                    "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10
+                  },
+                  "granularity": {
+                    "description": "Yearly returns one row per year; monthly returns one row per payment, up to 600 rows.",
+                    "default": "yearly",
+                    "type": "string",
+                    "enum": [
+                      "yearly",
+                      "monthly"
+                    ]
+                  }
+                },
+                "required": [
+                  "homePrice"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculation result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "The calculation result."
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "operation": {
+                          "type": "string"
+                        },
+                        "computedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input failed validation. The message names the offending field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Retry after the interval in Retry-After."
+          }
+        }
+      }
+    },
+    "/api/v1/calculate-pmi": {
+      "post": {
+        "operationId": "calculate_pmi",
+        "summary": "Calculate mortgage insurance",
+        "description": "Mortgage insurance for any US loan programme, including the upfront charges most calculators omit. Conventional: monthly PMI and the month it cancels at 80% and 78% loan-to-value. FHA: the 1.75% upfront premium, monthly MIP, and whether it runs for the life of the loan or ends after 11 years. VA: the funding fee, tiered by down payment and prior use, and waivers. USDA: guarantee and annual fees.",
+        "tags": [
+          "calculations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "description": "Mortgage insurance for any programme: conventional PMI with its cancellation point, FHA MIP and upfront premium, the VA funding fee, or USDA fees.",
+                "type": "object",
+                "properties": {
+                  "homePrice": {
+                    "description": "Purchase price of the home in US dollars.",
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000000
+                  },
+                  "downPaymentPercent": {
+                    "default": 10,
+                    "description": "Down payment as a percentage of the purchase price, 0 to 100. Not a dollar amount.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "annualInterestRatePercent": {
+                    "default": 6.5,
+                    "description": "Annual nominal interest rate as a percentage, for example 6.5 for 6.5%.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 30
+                  },
+                  "loanTermYears": {
+                    "default": 30,
+                    "description": "Loan term in years. Most US mortgages are 15 or 30.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "loanType": {
+                    "default": "conventional",
+                    "description": "Loan programme. Affects mortgage insurance and upfront fees.",
+                    "type": "string",
+                    "enum": [
+                      "conventional",
+                      "fha",
+                      "va",
+                      "usda"
+                    ]
+                  },
+                  "monthlyExtraPrincipal": {
+                    "description": "Extra principal paid monthly.",
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "creditScore": {
+                    "description": "FHA only: sets the minimum down payment. 580+ qualifies for 3.5%.",
+                    "type": "integer",
+                    "minimum": 300,
+                    "maximum": 850
+                  },
+                  "vaSubsequentUse": {
+                    "description": "VA only: entitlement used before.",
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "vaExemptFromFundingFee": {
+                    "description": "VA only: funding fee waived.",
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "homePrice"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculation result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "The calculation result."
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "operation": {
+                          "type": "string"
+                        },
+                        "computedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input failed validation. The message names the offending field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Retry after the interval in Retry-After."
+          }
+        }
+      }
+    },
+    "/api/v1/calculate-property-tax": {
+      "post": {
+        "operationId": "calculate_property_tax",
+        "summary": "Estimate property tax",
+        "description": "Annual and monthly property tax for a home, using a state's average effective rate. Also returns how that state ranks nationally and how its rate compares with the national average. For the mechanics behind the number — assessment basis, caps, exemptions, appeal deadlines — use get_state_mortgage_rules.",
+        "tags": [
+          "calculations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "homePrice": {
+                    "description": "Home value in US dollars.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "state": {
+                    "description": "Full US state name, for example \"Texas\".",
+                    "type": "string",
+                    "minLength": 2
+                  }
+                },
+                "required": [
+                  "homePrice",
+                  "state"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculation result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "The calculation result."
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "operation": {
+                          "type": "string"
+                        },
+                        "computedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input failed validation. The message names the offending field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Retry after the interval in Retry-After."
+          }
+        }
+      }
+    },
+    "/api/v1/calculate-affordability": {
+      "post": {
+        "operationId": "calculate_affordability",
+        "summary": "Work out how much house someone can afford",
+        "description": "Maximum affordable home price from income, existing debt payments and available down payment, using the 28/36 qualifying ratios. Reports which of the two ratios is the binding constraint, which is the actionable part: a buyer limited by the back-end ratio can raise their budget by clearing debt, one limited by the front-end ratio cannot.",
+        "tags": [
+          "calculations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "description": "Maximum affordable home price from income, debts and available down payment.",
+                "type": "object",
+                "properties": {
+                  "annualGrossIncome": {
+                    "description": "Household income before tax, in US dollars per year.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "monthlyDebtPayments": {
+                    "description": "Existing minimum monthly debt payments: car loans, student loans, credit card minimums. Excludes housing.",
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "downPaymentAmount": {
+                    "description": "Cash available for the down payment, in US dollars. A dollar amount, not a percentage.",
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "annualInterestRatePercent": {
+                    "default": 6.5,
+                    "description": "Annual nominal interest rate as a percentage, for example 6.5 for 6.5%.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 30
+                  },
+                  "loanTermYears": {
+                    "default": 30,
+                    "description": "Loan term in years. Most US mortgages are 15 or 30.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "annualInsurance": {
+                    "description": "Annual homeowners insurance premium.",
+                    "default": 1800,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "monthlyHoa": {
+                    "description": "Monthly HOA dues.",
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "frontEndRatioPercent": {
+                    "description": "Maximum housing cost as a share of gross income. 28 is the conservative standard.",
+                    "default": 28,
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "backEndRatioPercent": {
+                    "description": "Maximum total debt as a share of gross income. 36 is conservative; lenders often allow 45 and sometimes 50.",
+                    "default": 36,
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "state": {
+                    "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "propertyTaxRatePercent": {
+                    "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10
+                  }
+                },
+                "required": [
+                  "annualGrossIncome",
+                  "downPaymentAmount"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculation result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "The calculation result."
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "operation": {
+                          "type": "string"
+                        },
+                        "computedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input failed validation. The message names the offending field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Retry after the interval in Retry-After."
+          }
+        }
+      }
+    },
+    "/api/v1/calculate-refinance": {
+      "post": {
+        "operationId": "calculate_refinance",
+        "summary": "Evaluate a refinance",
+        "description": "Whether refinancing is worth it: the new payment, monthly saving, and how many months it takes to recover closing costs. Also compares lifetime interest, which catches the common trap where a lower payment costs more overall because the term was reset.",
+        "tags": [
+          "calculations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "description": "Refinance break-even in months, plus the effect on lifetime interest.",
+                "type": "object",
+                "properties": {
+                  "currentBalance": {
+                    "description": "Remaining principal on the existing loan.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "currentAnnualRatePercent": {
+                    "description": "Interest rate on the existing loan.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 30
+                  },
+                  "currentRemainingTermMonths": {
+                    "description": "Months still to run on the existing loan.",
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 600
+                  },
+                  "newAnnualRatePercent": {
+                    "description": "Interest rate being offered.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 30
+                  },
+                  "newTermYears": {
+                    "default": 30,
+                    "description": "Loan term in years. Most US mortgages are 15 or 30.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "closingCosts": {
+                    "description": "Total cost to close the refinance, in US dollars.",
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "financeClosingCosts": {
+                    "description": "Roll closing costs into the new balance instead of paying cash.",
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "currentBalance",
+                  "currentAnnualRatePercent",
+                  "currentRemainingTermMonths",
+                  "newAnnualRatePercent",
+                  "closingCosts"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculation result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "The calculation result."
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "operation": {
+                          "type": "string"
+                        },
+                        "computedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input failed validation. The message names the offending field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Retry after the interval in Retry-After."
+          }
+        }
+      }
+    },
+    "/api/v1/estimate-closing-costs": {
+      "post": {
+        "operationId": "estimate_closing_costs",
+        "summary": "Itemise closing costs",
+        "description": "Line-by-line buyer closing costs — lender fees, title, appraisal, transfer taxes, prepaid escrow — plus total cash needed at the table including the down payment. Marks which items are worth shopping for and which are fixed by the county, and adds the FHA upfront premium, VA funding fee or USDA guarantee fee where they apply.",
+        "tags": [
+          "calculations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "description": "Itemised buyer closing costs and total cash needed at the table.",
+                "type": "object",
+                "properties": {
+                  "homePrice": {
+                    "description": "Purchase price of the home in US dollars.",
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000000
+                  },
+                  "downPaymentPercent": {
+                    "default": 20,
+                    "description": "Down payment as a percentage of the purchase price, 0 to 100. Not a dollar amount.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "loanType": {
+                    "default": "conventional",
+                    "description": "Loan programme. Affects mortgage insurance and upfront fees.",
+                    "type": "string",
+                    "enum": [
+                      "conventional",
+                      "fha",
+                      "va",
+                      "usda"
+                    ]
+                  },
+                  "annualInsurance": {
+                    "description": "Annual homeowners insurance premium.",
+                    "default": 1800,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "escrowMonths": {
+                    "description": "Months of taxes collected up front to open the escrow account.",
+                    "default": 3,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 12
+                  },
+                  "transferTaxPercent": {
+                    "description": "State and local transfer tax as a percentage of price. Varies enormously by state.",
+                    "default": 0.4,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 5
+                  },
+                  "vaSubsequentUse": {
+                    "description": "VA only: entitlement has been used before.",
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "vaExemptFromFundingFee": {
+                    "description": "VA only: exempt from the funding fee, for example a service-connected disability rating.",
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "state": {
+                    "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "propertyTaxRatePercent": {
+                    "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10
+                  }
+                },
+                "required": [
+                  "homePrice"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculation result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "The calculation result."
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "operation": {
+                          "type": "string"
+                        },
+                        "computedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input failed validation. The message names the offending field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Retry after the interval in Retry-After."
+          }
+        }
+      }
+    },
+    "/api/v1/calculate-rent-vs-buy": {
+      "post": {
+        "operationId": "calculate_rent_vs_buy",
+        "summary": "Compare renting with buying",
+        "description": "Compares renting and buying on net wealth rather than on monthly payment, accounting for equity, appreciation, maintenance, selling costs, and the return a renter earns on money not spent on a down payment. Returns the year buying overtakes renting. The result is highly sensitive to the appreciation and investment-return assumptions, which are returned alongside it.",
+        "tags": [
+          "calculations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "description": "Rent versus buy compared on net wealth, with the year buying pulls ahead.",
+                "type": "object",
+                "properties": {
+                  "homePrice": {
+                    "description": "Purchase price of the home in US dollars.",
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000000
+                  },
+                  "downPaymentPercent": {
+                    "default": 20,
+                    "description": "Down payment as a percentage of the purchase price, 0 to 100. Not a dollar amount.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "annualInterestRatePercent": {
+                    "default": 6.5,
+                    "description": "Annual nominal interest rate as a percentage, for example 6.5 for 6.5%.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 30
+                  },
+                  "loanTermYears": {
+                    "default": 30,
+                    "description": "Loan term in years. Most US mortgages are 15 or 30.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "annualInsurance": {
+                    "description": "Annual homeowners insurance premium.",
+                    "default": 1800,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "monthlyHoa": {
+                    "description": "Monthly HOA dues.",
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "monthlyRent": {
+                    "description": "Current monthly rent for a comparable home.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "annualRentIncreasePercent": {
+                    "description": "Expected annual rent growth.",
+                    "default": 3,
+                    "type": "number",
+                    "minimum": -10,
+                    "maximum": 20
+                  },
+                  "annualHomeAppreciationPercent": {
+                    "description": "Expected annual home price growth. The answer is highly sensitive to this.",
+                    "default": 3,
+                    "type": "number",
+                    "minimum": -10,
+                    "maximum": 20
+                  },
+                  "annualMaintenancePercent": {
+                    "description": "Annual upkeep as a percentage of home value. Typically 1 to 2.",
+                    "default": 1,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10
+                  },
+                  "investmentReturnPercent": {
+                    "description": "Return a renter earns on cash not tied up in a house.",
+                    "default": 6,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 30
+                  },
+                  "sellingCostPercent": {
+                    "description": "Cost of selling, including agent commission.",
+                    "default": 6,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 20
+                  },
+                  "yearsToCompare": {
+                    "description": "Horizon of the comparison.",
+                    "default": 30,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "state": {
+                    "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "propertyTaxRatePercent": {
+                    "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10
+                  }
+                },
+                "required": [
+                  "homePrice",
+                  "monthlyRent"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculation result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "The calculation result."
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "operation": {
+                          "type": "string"
+                        },
+                        "computedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input failed validation. The message names the offending field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Retry after the interval in Retry-After."
+          }
+        }
+      }
+    },
+    "/api/v1/compare-loans": {
+      "post": {
+        "operationId": "compare_loans",
+        "summary": "Compare loan options side by side",
+        "description": "Compares two to five loan scenarios and reports which is cheapest by monthly payment and which by lifetime cost, separately, because they frequently are not the same loan. Use for 15-year versus 30-year, FHA versus conventional, competing lender quotes, or with and without discount points.",
+        "tags": [
+          "calculations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "description": "Compare loan options. Reports the cheapest by monthly payment and by lifetime cost separately, because they often differ.",
+                "type": "object",
+                "properties": {
+                  "scenarios": {
+                    "description": "Two to five loan scenarios to compare side by side.",
+                    "minItems": 2,
+                    "maxItems": 5,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "description": "Name for this option, for example \"30-year fixed\".",
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "input": {
+                          "description": "Full monthly housing cost: principal, interest, taxes, insurance, PMI and HOA.",
+                          "type": "object",
+                          "properties": {
+                            "homePrice": {
+                              "description": "Purchase price of the home in US dollars.",
+                              "type": "number",
+                              "exclusiveMinimum": 0,
+                              "maximum": 100000000
+                            },
+                            "downPaymentPercent": {
+                              "default": 20,
+                              "description": "Down payment as a percentage of the purchase price, 0 to 100. Not a dollar amount.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 100
+                            },
+                            "annualInterestRatePercent": {
+                              "default": 6.5,
+                              "description": "Annual nominal interest rate as a percentage, for example 6.5 for 6.5%.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 30
+                            },
+                            "loanTermYears": {
+                              "default": 30,
+                              "description": "Loan term in years. Most US mortgages are 15 or 30.",
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 50
+                            },
+                            "loanType": {
+                              "default": "conventional",
+                              "description": "Loan programme. Affects mortgage insurance and upfront fees.",
+                              "type": "string",
+                              "enum": [
+                                "conventional",
+                                "fha",
+                                "va",
+                                "usda"
+                              ]
+                            },
+                            "annualInsurance": {
+                              "description": "Annual homeowners insurance premium in US dollars.",
+                              "default": 1800,
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "monthlyHoa": {
+                              "description": "Monthly homeowners association dues in US dollars.",
+                              "default": 0,
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "monthlyExtraPrincipal": {
+                              "description": "Additional principal paid each month. Shortens the loan rather than lowering the payment.",
+                              "default": 0,
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "state": {
+                              "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
+                              "type": "string",
+                              "minLength": 2
+                            },
+                            "propertyTaxRatePercent": {
+                              "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 10
+                            }
+                          },
+                          "required": [
+                            "homePrice"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "input"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "scenarios"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculation result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "The calculation result."
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "operation": {
+                          "type": "string"
+                        },
+                        "computedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input failed validation. The message names the offending field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Retry after the interval in Retry-After."
+          }
+        }
+      }
+    },
+    "/api/v1/get-state-mortgage-rules": {
+      "post": {
+        "operationId": "get_state_mortgage_rules",
+        "summary": "Look up a state's property tax rules",
+        "description": "How property tax actually works in one state: how assessed value is derived, any statutory growth cap, the billing cycle, named exemptions such as homestead, the filing deadline, who hears appeals and the window to file, notable county variation, and a link to the state's own tax authority. Use this when the question is about mechanics or deadlines rather than a dollar amount.",
+        "tags": [
+          "calculations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "description": "Property tax mechanics, exemptions, appeal windows and county variation for one state.",
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
+                    "type": "string",
+                    "minLength": 2
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculation result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "The calculation result."
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "operation": {
+                          "type": "string"
+                        },
+                        "computedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input failed validation. The message names the offending field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Retry after the interval in Retry-After."
+          }
+        }
+      }
+    },
+    "/api/v1/list-states": {
+      "post": {
+        "operationId": "list_states",
+        "summary": "List all 50 states with property tax rates",
+        "description": "Every US state with its average effective property tax rate, median home value and estimated annual tax. Sortable, so it answers 'which states have the highest property taxes' directly. Call this to discover valid state names for the other tools.",
+        "tags": [
+          "calculations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "description": "All 50 states with average property tax rate, median home value and estimated annual tax.",
+                "type": "object",
+                "properties": {
+                  "sortBy": {
+                    "description": "Ordering of the returned list.",
+                    "default": "name",
+                    "type": "string",
+                    "enum": [
+                      "name",
+                      "taxRate",
+                      "medianHomeValue"
+                    ]
+                  },
+                  "order": {
+                    "description": "Sort direction.",
+                    "default": "asc",
+                    "type": "string",
+                    "enum": [
+                      "asc",
+                      "desc"
+                    ]
+                  },
+                  "limit": {
+                    "description": "How many states to return.",
+                    "default": 50,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculation result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "The calculation result."
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "operation": {
+                          "type": "string"
+                        },
+                        "computedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input failed validation. The message names the offending field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Retry after the interval in Retry-After."
+          }
+        }
+      }
+    },
+    "/api/v1/states": {
+      "get": {
+        "operationId": "listStates",
+        "summary": "List all 50 states with property tax data",
+        "description": "Average effective property tax rate, median home value and estimated annual tax for every US state. Cacheable.",
+        "tags": [
+          "reference"
+        ],
+        "parameters": [
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "name",
+                "taxRate",
+                "medianHomeValue"
+              ],
+              "default": "name"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The 50 states with provenance metadata."
+          }
+        }
+      }
+    },
+    "/api/v1/states/{state}": {
+      "get": {
+        "operationId": "getStateRules",
+        "summary": "Property tax rules for one state",
+        "description": "Assessment basis, growth caps, exemptions, billing cycle, appeal route and county variation for a single state.",
+        "tags": [
+          "reference"
+        ],
+        "parameters": [
+          {
+            "name": "state",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "State name or slug, for example \"texas\" or \"texas-mortgage-calculator\"."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "State tax rules."
+          },
+          "404": {
+            "description": "No such state."
+          }
+        }
+      }
+    },
+    "/api/v1/assumptions": {
+      "get": {
+        "operationId": "getAssumptions",
+        "summary": "Published rate assumptions",
+        "description": "Every rate, fee and limit used by the calculations, each with its source and effective year.",
+        "tags": [
+          "reference"
+        ],
+        "responses": {
+          "200": {
+            "description": "Assumptions with provenance."
+          }
+        }
+      }
+    },
+    "/api/v1/company": {
+      "get": {
+        "operationId": "getCompany",
+        "summary": "Publisher and editorial information",
+        "description": "Who operates the site, how it is funded, editorial policy, data sources and legal disclaimers.",
+        "tags": [
+          "reference"
+        ],
+        "responses": {
+          "200": {
+            "description": "Company profile."
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Service health",
+        "tags": [
+          "meta"
+        ],
+        "responses": {
+          "200": {
+            "description": "Service is up."
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "calculations",
+      "description": "Mortgage calculations. Stateless and idempotent."
+    },
+    {
+      "name": "reference",
+      "description": "Reference data: states, assumptions, publisher."
+    },
+    {
+      "name": "meta",
+      "description": "Service metadata."
+    }
+  ],
+  "externalDocs": {
+    "description": "Human-readable site",
+    "url": "https://www.usmortgagecalc.com"
+  }
+}

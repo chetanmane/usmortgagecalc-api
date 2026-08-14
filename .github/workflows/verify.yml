@@ -1,0 +1,73 @@
+name: Verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Everything here mirrors a live service, so it can go stale without anyone
+  # touching this repository. A daily run catches drift the moment it appears
+  # rather than when a developer reports it.
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Check specs, SDKs and examples against production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Verify against the live API
+        run: node scripts/verify.mjs
+
+      - name: Confirm the Postman collection is what the generator produces
+        run: |
+          node scripts/build-postman.mjs
+          git diff --exit-code spec/postman_collection.json \
+            || (echo "::error::spec/postman_collection.json is out of date — run npm run postman" && exit 1)
+
+  languages:
+    name: Run the SDKs that need a toolchain
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node sdk/javascript/mortgage.js
+
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install httpx && python sdk/python/mortgage.py
+
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.22" }
+      # Go, PHP and C# are contract-verified only in the authoring environment;
+      # CI is where they actually get compiled and run.
+      - run: go run sdk/go/mortgage.go
+
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: "8.3" }
+      - run: php sdk/php/mortgage.php
+
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: "8.0" }
+      - name: Build and run the C# example
+        run: |
+          mkdir -p /tmp/cs && cd /tmp/cs
+          dotnet new console -o . --force
+          cp "$GITHUB_WORKSPACE/sdk/csharp/Mortgage.cs" Program.cs
+          dotnet run

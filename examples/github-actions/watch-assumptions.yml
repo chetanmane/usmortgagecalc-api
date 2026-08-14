@@ -1,0 +1,90 @@
+# Watch the published mortgage assumptions for changes.
+#
+# FHA premiums, VA funding fees, conforming loan limits and DTI thresholds are
+# set by federal agencies and change annually — usually in late autumn, for the
+# following year. If your product embeds any of them, this tells you the week
+# they move rather than the month somebody notices a wrong figure.
+#
+# Copy into .github/workflows/ in your own repository.
+
+name: Watch mortgage assumptions
+
+on:
+  schedule:
+    # Weekly, Monday 08:00 UTC. Annual figures do not need hourly polling.
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch current assumptions
+        run: |
+          mkdir -p .assumptions
+          curl -fsS https://www.usmortgagecalc.com/api/v1/assumptions \
+            | jq -S '.figures' > .assumptions/current.json
+
+      - name: Compare with the last known set
+        id: diff
+        run: |
+          if [ ! -f .assumptions/known.json ]; then
+            echo "First run — recording the current values as the baseline."
+            cp .assumptions/current.json .assumptions/known.json
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "first_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if diff -q .assumptions/known.json .assumptions/current.json > /dev/null; then
+            echo "No change."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "changed=true"
+              echo "summary<<EOF"
+              diff -u .assumptions/known.json .assumptions/current.json || true
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open an issue when a figure moves
+        if: steps.diff.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = process.env.SUMMARY ?? "(diff unavailable)";
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: "Mortgage assumptions changed upstream",
+              body: [
+                "A figure published at https://www.usmortgagecalc.com/api/v1/assumptions has changed.",
+                "",
+                "Anywhere your product hard-codes one of these needs reviewing.",
+                "",
+                "```diff",
+                summary,
+                "```",
+                "",
+                "Sources for every value: https://www.usmortgagecalc.com/methodology",
+              ].join("\n"),
+            });
+        env:
+          SUMMARY: ${{ steps.diff.outputs.summary }}
+
+      - name: Record the new baseline
+        if: steps.diff.outputs.changed == 'true' || steps.diff.outputs.first_run == 'true'
+        run: |
+          cp .assumptions/current.json .assumptions/known.json
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .assumptions/known.json
+          git commit -m "Update mortgage assumptions baseline" || exit 0
+          git push

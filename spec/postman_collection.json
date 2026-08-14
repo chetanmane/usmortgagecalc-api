@@ -1,0 +1,535 @@
+{
+  "info": {
+    "name": "US Mortgage Calculator API",
+    "description": "Mortgage calculations for all fifty US states. Free, no authentication required — an API key raises your rate limit rather than granting access.\n\nSet `apiKey` in the collection variables to send one; leave it empty to call anonymously.\n\nGenerated from spec/openapi.json — do not edit by hand.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://www.usmortgagecalc.com",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "state",
+      "value": "texas",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{apiKey}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Build an amortization schedule",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/calculate-amortization",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "calculate-amortization"
+          ]
+        },
+        "description": "Payment-by-payment breakdown of how a loan is repaid, showing the split between principal and interest and the falling balance. Use granularity 'monthly' for the first years in detail, 'yearly' for a whole-term overview. Also reports how much sooner extra principal pays the loan off.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"homePrice\": 400000,\n  \"downPaymentPercent\": 20,\n  \"annualInterestRatePercent\": 6.5,\n  \"loanTermYears\": 30,\n  \"loanType\": \"conventional\",\n  \"annualInsurance\": 1800,\n  \"monthlyHoa\": 0,\n  \"monthlyExtraPrincipal\": 0,\n  \"state\": \"Texas\",\n  \"granularity\": \"yearly\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Calculate a monthly mortgage payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/calculate-mortgage",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "calculate-mortgage"
+          ]
+        },
+        "description": "Full monthly housing cost for a US mortgage: principal and interest, property tax, homeowners insurance, mortgage insurance and HOA dues, plus lifetime totals and payoff timing. Pass a state name to use that state's average property tax rate. This is the right tool for 'what would my payment be on a $400,000 house'.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"homePrice\": 400000,\n  \"downPaymentPercent\": 20,\n  \"annualInterestRatePercent\": 6.5,\n  \"loanTermYears\": 30,\n  \"loanType\": \"conventional\",\n  \"annualInsurance\": 1800,\n  \"monthlyHoa\": 0,\n  \"monthlyExtraPrincipal\": 0,\n  \"state\": \"Texas\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Calculate mortgage insurance",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/calculate-pmi",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "calculate-pmi"
+          ]
+        },
+        "description": "Mortgage insurance for any US loan programme, including the upfront charges most calculators omit. Conventional: monthly PMI and the month it cancels at 80% and 78% loan-to-value. FHA: the 1.75% upfront premium, monthly MIP, and whether it runs for the life of the loan or ends after 11 years. VA: the funding fee, tiered by down payment and prior use, and waivers. USDA: guarantee and annual fees.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"homePrice\": 400000,\n  \"downPaymentPercent\": 10,\n  \"annualInterestRatePercent\": 6.5,\n  \"loanTermYears\": 30,\n  \"loanType\": \"conventional\",\n  \"monthlyExtraPrincipal\": 0,\n  \"vaSubsequentUse\": false,\n  \"vaExemptFromFundingFee\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Compare loan options side by side",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/compare-loans",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "compare-loans"
+          ]
+        },
+        "description": "Compares two to five loan scenarios and reports which is cheapest by monthly payment and which by lifetime cost, separately, because they frequently are not the same loan. Use for 15-year versus 30-year, FHA versus conventional, competing lender quotes, or with and without discount points.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"scenarios\": [\n    {\n      \"label\": \"x\",\n      \"input\": {\n        \"homePrice\": 400000,\n        \"downPaymentPercent\": 20,\n        \"annualInterestRatePercent\": 6.5,\n        \"loanTermYears\": 30,\n        \"loanType\": \"conventional\",\n        \"annualInsurance\": 1800,\n        \"monthlyHoa\": 0,\n        \"monthlyExtraPrincipal\": 0,\n        \"state\": \"Texas\"\n      }\n    },\n    {\n      \"label\": \"x\",\n      \"input\": {\n        \"homePrice\": 400000,\n        \"downPaymentPercent\": 20,\n        \"annualInterestRatePercent\": 6.5,\n        \"loanTermYears\": 30,\n        \"loanType\": \"conventional\",\n        \"annualInsurance\": 1800,\n        \"monthlyHoa\": 0,\n        \"monthlyExtraPrincipal\": 0,\n        \"state\": \"Texas\"\n      }\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Compare renting with buying",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/calculate-rent-vs-buy",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "calculate-rent-vs-buy"
+          ]
+        },
+        "description": "Compares renting and buying on net wealth rather than on monthly payment, accounting for equity, appreciation, maintenance, selling costs, and the return a renter earns on money not spent on a down payment. Returns the year buying overtakes renting. The result is highly sensitive to the appreciation and investment-return assumptions, which are returned alongside it.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"homePrice\": 400000,\n  \"downPaymentPercent\": 20,\n  \"annualInterestRatePercent\": 6.5,\n  \"loanTermYears\": 30,\n  \"annualInsurance\": 1800,\n  \"monthlyHoa\": 0,\n  \"monthlyRent\": 1,\n  \"annualRentIncreasePercent\": 3,\n  \"annualHomeAppreciationPercent\": 3,\n  \"annualMaintenancePercent\": 1,\n  \"investmentReturnPercent\": 6,\n  \"sellingCostPercent\": 6,\n  \"yearsToCompare\": 30,\n  \"state\": \"Texas\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Estimate property tax",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/calculate-property-tax",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "calculate-property-tax"
+          ]
+        },
+        "description": "Annual and monthly property tax for a home, using a state's average effective rate. Also returns how that state ranks nationally and how its rate compares with the national average. For the mechanics behind the number — assessment basis, caps, exemptions, appeal deadlines — use get_state_mortgage_rules.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"homePrice\": 400000,\n  \"state\": \"Texas\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Evaluate a refinance",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/calculate-refinance",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "calculate-refinance"
+          ]
+        },
+        "description": "Whether refinancing is worth it: the new payment, monthly saving, and how many months it takes to recover closing costs. Also compares lifetime interest, which catches the common trap where a lower payment costs more overall because the term was reset.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"currentBalance\": 400000,\n  \"currentAnnualRatePercent\": 1,\n  \"currentRemainingTermMonths\": 30,\n  \"newAnnualRatePercent\": 1,\n  \"newTermYears\": 30,\n  \"closingCosts\": 1,\n  \"financeClosingCosts\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Itemise closing costs",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/estimate-closing-costs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "estimate-closing-costs"
+          ]
+        },
+        "description": "Line-by-line buyer closing costs — lender fees, title, appraisal, transfer taxes, prepaid escrow — plus total cash needed at the table including the down payment. Marks which items are worth shopping for and which are fixed by the county, and adds the FHA upfront premium, VA funding fee or USDA guarantee fee where they apply.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"homePrice\": 400000,\n  \"downPaymentPercent\": 20,\n  \"loanType\": \"conventional\",\n  \"annualInsurance\": 1800,\n  \"escrowMonths\": 3,\n  \"transferTaxPercent\": 0.4,\n  \"vaSubsequentUse\": false,\n  \"vaExemptFromFundingFee\": false,\n  \"state\": \"Texas\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List all 50 states with property tax data",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/states",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "states"
+          ]
+        },
+        "description": "Average effective property tax rate, median home value and estimated annual tax for every US state. Cacheable."
+      },
+      "response": []
+    },
+    {
+      "name": "List all 50 states with property tax rates",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/list-states",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "list-states"
+          ]
+        },
+        "description": "Every US state with its average effective property tax rate, median home value and estimated annual tax. Sortable, so it answers 'which states have the highest property taxes' directly. Call this to discover valid state names for the other tools.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sortBy\": \"name\",\n  \"order\": \"asc\",\n  \"limit\": 50\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Look up a state's property tax rules",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/get-state-mortgage-rules",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "get-state-mortgage-rules"
+          ]
+        },
+        "description": "How property tax actually works in one state: how assessed value is derived, any statutory growth cap, the billing cycle, named exemptions such as homestead, the filing deadline, who hears appeals and the window to file, notable county variation, and a link to the state's own tax authority. Use this when the question is about mechanics or deadlines rather than a dollar amount.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"state\": \"Texas\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Property tax rules for one state",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/states/{{state}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "states",
+            "{{state}}"
+          ]
+        },
+        "description": "Assessment basis, growth caps, exemptions, billing cycle, appeal route and county variation for a single state."
+      },
+      "response": []
+    },
+    {
+      "name": "Published rate assumptions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/assumptions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "assumptions"
+          ]
+        },
+        "description": "Every rate, fee and limit used by the calculations, each with its source and effective year."
+      },
+      "response": []
+    },
+    {
+      "name": "Publisher and editorial information",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/company",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "company"
+          ]
+        },
+        "description": "Who operates the site, how it is funded, editorial policy, data sources and legal disclaimers."
+      },
+      "response": []
+    },
+    {
+      "name": "Service health",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "health"
+          ]
+        },
+        "description": "Service health"
+      },
+      "response": []
+    },
+    {
+      "name": "Work out how much house someone can afford",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/calculate-affordability",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "calculate-affordability"
+          ]
+        },
+        "description": "Maximum affordable home price from income, existing debt payments and available down payment, using the 28/36 qualifying ratios. Reports which of the two ratios is the binding constraint, which is the actionable part: a buyer limited by the back-end ratio can raise their budget by clearing debt, one limited by the front-end ratio cannot.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"annualGrossIncome\": 400000,\n  \"monthlyDebtPayments\": 0,\n  \"downPaymentAmount\": 1,\n  \"annualInterestRatePercent\": 6.5,\n  \"loanTermYears\": 30,\n  \"annualInsurance\": 1800,\n  \"monthlyHoa\": 0,\n  \"frontEndRatioPercent\": 28,\n  \"backEndRatioPercent\": 36,\n  \"state\": \"Texas\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    }
+  ]
+}

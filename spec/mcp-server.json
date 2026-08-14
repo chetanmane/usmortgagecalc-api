@@ -1,0 +1,86 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.usmortgagecalc/mortgage",
+  "description": "US mortgage calculations and 50-state property tax reference data. Stateless, no authentication, no personal data.",
+  "version": "1.0.0",
+  "websiteUrl": "https://www.usmortgagecalc.com",
+  "status": "active",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://www.usmortgagecalc.com/mcp"
+    }
+  ],
+  "capabilities": {
+    "tools": [
+      {
+        "name": "calculate_mortgage",
+        "title": "Calculate a monthly mortgage payment"
+      },
+      {
+        "name": "calculate_amortization",
+        "title": "Build an amortization schedule"
+      },
+      {
+        "name": "calculate_pmi",
+        "title": "Calculate mortgage insurance"
+      },
+      {
+        "name": "calculate_property_tax",
+        "title": "Estimate property tax"
+      },
+      {
+        "name": "calculate_affordability",
+        "title": "Work out how much house someone can afford"
+      },
+      {
+        "name": "calculate_refinance",
+        "title": "Evaluate a refinance"
+      },
+      {
+        "name": "estimate_closing_costs",
+        "title": "Itemise closing costs"
+      },
+      {
+        "name": "calculate_rent_vs_buy",
+        "title": "Compare renting with buying"
+      },
+      {
+        "name": "compare_loans",
+        "title": "Compare loan options side by side"
+      },
+      {
+        "name": "get_state_mortgage_rules",
+        "title": "Look up a state's property tax rules"
+      },
+      {
+        "name": "list_states",
+        "title": "List all 50 states with property tax rates"
+      }
+    ],
+    "resources": [
+      "usmc://company/profile",
+      "usmc://glossary",
+      "usmc://states/index",
+      "usmc://states/{state}",
+      "usmc://assumptions/rates",
+      "usmc://legal/disclaimer",
+      "usmc://docs/openapi"
+    ],
+    "prompts": [
+      "explain_my_payment",
+      "compare_fha_vs_conventional",
+      "estimate_closing_costs",
+      "how_much_can_i_afford",
+      "should_i_refinance",
+      "explain_amortization",
+      "first_time_buyer_walkthrough"
+    ]
+  },
+  "authentication": {
+    "type": "none"
+  },
+  "_meta": {
+    "note": "The .well-known/mcp/server.json discovery convention (SEP-1649) is proposed rather than ratified. This file is published for forward compatibility; /mcp is the authoritative endpoint."
+  }
+}

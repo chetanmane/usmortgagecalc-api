@@ -1,0 +1,30 @@
+name: SDK or example request
+description: Ask for a language or framework that is not covered
+title: "[sdk] "
+labels: ["enhancement", "sdk"]
+body:
+  - type: input
+    id: language
+    attributes:
+      label: Language or framework
+      placeholder: "Rust, Ruby, Java, Swift, Laravel, Django…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: What are you building?
+      description: >
+        Helps judge whether a single-file client is the right shape, or whether
+        generating one from spec/openapi.json would serve you better.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Would you be willing to contribute it?
+      options:
+        - label: Yes, I could open a pull request
+        - label: I could test one if someone else writes it

@@ -1,0 +1,47 @@
+name: Documentation problem
+description: Something here is wrong, missing, or hard to follow
+title: "[docs] "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Documentation that does not match the API is the highest-value bug in
+        this repository. These docs have shipped a wrong error field name and
+        examples that printed `undefined` — if something does not work as
+        written, that is a real defect, not your mistake.
+
+  - type: input
+    id: page
+    attributes:
+      label: Which page or file?
+      placeholder: "docs/rest-api.md, or sdk/python/mortgage.py"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of problem?
+      options:
+        - It says something that is not true
+        - Code here does not run, or produces the wrong result
+        - Something is missing entirely
+        - It is accurate but hard to follow
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: If you ran something, paste the command and the output.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true

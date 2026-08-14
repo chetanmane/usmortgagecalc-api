@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/chetanmane/usmortgagecalc-api/blob/main/SECURITY.md
+    about: Do not open a public issue. Email devscriptify@gmail.com instead.
+  - name: Live developer documentation
+    url: https://www.usmortgagecalc.com/developers
+    about: REST reference, MCP server, OpenAPI, SDK examples and the API explorer.
+  - name: Platform status
+    url: https://www.usmortgagecalc.com/status
+    about: Check whether the API, MCP server or site is currently reachable.
+  - name: API key management
+    url: https://www.usmortgagecalc.com/dashboard
+    about: Create, revoke and monitor API keys. Keys are optional.
+  - name: Data correction
+    url: mailto:devscriptify@gmail.com
+    about: A wrong property tax rate, exemption or deadline for a state.

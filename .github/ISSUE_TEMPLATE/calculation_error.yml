@@ -1,0 +1,76 @@
+name: Incorrect calculation
+description: A calculator, API endpoint or MCP tool returned the wrong number
+title: "[calculation] "
+labels: ["calculation", "bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The numbers are the product, so this is the highest-priority class of
+        bug here. Please include the exact inputs — a figure without the inputs
+        that produced it cannot be reproduced.
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where did you see it?
+      options:
+        - Website calculator
+        - REST API
+        - MCP tool
+        - Embedded widget
+        - Published article or dataset
+    validations:
+      required: true
+
+  - type: input
+    id: endpoint
+    attributes:
+      label: Calculator, endpoint or tool
+      placeholder: "/api/v1/calculate-mortgage, or the PMI calculator page"
+    validations:
+      required: true
+
+  - type: textarea
+    id: inputs
+    attributes:
+      label: Exact inputs
+      description: The full request body, or every field you entered.
+      render: json
+      placeholder: |
+        {
+          "homePrice": 400000,
+          "downPaymentPercent": 20,
+          "annualInterestRatePercent": 6.5,
+          "loanTermYears": 30,
+          "state": "Texas"
+        }
+    validations:
+      required: true
+
+  - type: input
+    id: got
+    attributes:
+      label: Figure you got
+      placeholder: "$2,775.95"
+    validations:
+      required: true
+
+  - type: input
+    id: expected
+    attributes:
+      label: Figure you expected
+      placeholder: "$2,801.40"
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: What supports the expected figure?
+      description: >
+        A lender's disclosure, an agency publication, a formula, or another
+        calculator. This is what makes a report actionable rather than a
+        disagreement — it does not have to be authoritative, just stated.
+    validations:
+      required: false
