@@ -8,11 +8,11 @@ version in the path, and breaking changes to a response shape arrive at
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## Unreleased
 
 Nothing yet.
 
-## [1.0.0] — 2026-08-14
+## 1.0.0 — 2026-08-14
 
 First public release. Extracted from the platform's private repository so the
 developer-facing material can be read, forked and corrected independently of the
@@ -58,6 +58,3 @@ Carried over from fixes made in the private repository the same week:
 - Rate limits are documented as **ceilings, not guarantees** — enforcement is
   per serverless instance, so a burst can exceed the stated figure. Build against
   the headers and the 429 rather than the number.
-
-[Unreleased]: https://github.com/chetanmane/usmortgagecalc-api/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/chetanmane/usmortgagecalc-api/releases/tag/v1.0.0
