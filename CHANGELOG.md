@@ -10,7 +10,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## Unreleased
 
-Nothing yet.
+### Fixed
+
+- **The worked example was out of date everywhere it appeared.** The platform
+  rebuilt its state property tax table from a single U.S. Census Bureau ACS
+  release, which moved Texas from 1.81% to 1.58% and the documented $400,000
+  example from $2,775.95 a month to $2,699.28. The README, the quickstart and
+  the REST reference all still quoted the old figures, as did `npm run verify`
+  itself — which is why the nightly run went red rather than catching it at the
+  time.
+- **The pandas example named columns the CSV has never had.** The dataset's
+  headers are snake_case (`avg_effective_tax_rate_percent`); the example used
+  camelCase, so running it raised `KeyError`.
+
+### Added
+
+- **`npm run verify` now checks the documentation against the live API.** It
+  reads the worked example's figures back out of the Markdown and compares them
+  with a real response, so prose and product cannot drift apart silently again.
+- **`state-property-tax-history`** in the dataset list — 700 rows, every state
+  for every year from 2010 to 2024, with a note on why it and the current-year
+  table disagree and why 2020 is absent.
 
 ## 1.0.0 — 2026-08-14
 

@@ -36,7 +36,7 @@ curl -s https://www.usmortgagecalc.com/api/v1/calculate-mortgage \
        "annualInterestRatePercent":6.5,"loanTermYears":30,"state":"Texas"}'
 ```
 
-Returns `$2,775.95` a month, itemised, with the assumptions that produced it.
+Returns `$2,699.28` a month, itemised, with the assumptions that produced it.
 
 ## What is in this repository
 

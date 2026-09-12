@@ -37,7 +37,15 @@ const LOAN = {
   loanTermYears: 30,
   state: "Texas",
 };
-const EXPECTED_MONTHLY = 2775.95;
+/**
+ * The published worked example, and the only place its total is written down.
+ *
+ * It changed once already, when the state tax table was rebuilt from a single
+ * Census ACS release and Texas moved from 1.81% to 1.58%. Two checks were
+ * comparing against it and only one used this constant, so the other went on
+ * asserting the old figure as a string literal until the nightly run caught it.
+ */
+const EXPECTED_MONTHLY = 2699.28;
 
 let passes = 0;
 let failures = 0;
@@ -231,6 +239,67 @@ await check("datasets referenced by the docs exist", async () => {
   return `${index.datasets.length} datasets`;
 });
 
+/* ------------------------------------------------------------------ docs */
+
+/**
+ * The documentation quotes a worked example. Nothing used to check that it was
+ * still the answer the API gives.
+ *
+ * That is how this repository shipped a README and two guides promising
+ * $2,775.95 for weeks after the state tax table was rebuilt and the real answer
+ * became $2,699.28 — the nightly run was green on the API and silent on the
+ * prose. A reader following the quickstart would have got a different number
+ * from the one printed directly above their terminal.
+ *
+ * This reads the figures back out of the Markdown and compares them against the
+ * live response, so the docs cannot drift again without the run going red.
+ */
+await check("docs quote the live worked example", async () => {
+  const response = await request(`${BASE}/api/v1/calculate-mortgage`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(LOAN),
+  });
+  expect(response.ok, `HTTP ${response.status}`);
+  const { data } = await response.json();
+
+  const fields = {
+    totalMonthlyCost: data.totalMonthlyCost,
+    monthlyPropertyTax: data.monthlyPropertyTax,
+    propertyTaxRate: data.propertyTaxRate,
+  };
+
+  const files = ["README.md", "docs/quickstart.md", "docs/rest-api.md"];
+  const wrong = [];
+  let checked = 0;
+
+  for (const file of files) {
+    const text = readFileSync(join(root, file), "utf8");
+
+    // The JSON blocks: "field": number.
+    for (const [field, live] of Object.entries(fields)) {
+      const pattern = new RegExp(`"${field}":\\s*([\\d.]+)`, "g");
+      for (const match of text.matchAll(pattern)) {
+        checked += 1;
+        if (Math.abs(Number(match[1]) - live) > 0.01) {
+          wrong.push(`${file}: ${field} says ${match[1]}, live is ${live}`);
+        }
+      }
+    }
+
+    // The prose form: a grouped dollar total, e.g. `$2,699.28`.
+    for (const match of text.matchAll(/\$([\d,]+\.\d{2})/g)) {
+      checked += 1;
+      if (Math.abs(Number(match[1].replace(/,/g, "")) - data.totalMonthlyCost) > 0.01) {
+        wrong.push(`${file}: prose total ${match[0]}, live is ${data.totalMonthlyCost}`);
+      }
+    }
+  }
+
+  expect(wrong.length === 0, wrong.join("; "));
+  return `${checked} figures across ${files.length} files`;
+});
+
 /* ------------------------------------------------------------------- SDKs */
 
 await check("JavaScript SDK runs against production", async () => {
@@ -239,7 +308,12 @@ await check("JavaScript SDK runs against production", async () => {
     encoding: "utf8",
     timeout: 30_000,
   });
-  expect(out.includes("2775.95") || out.includes("2,775.95"), `unexpected output: ${out.trim()}`);
+  const expected = EXPECTED_MONTHLY.toFixed(2);
+  const grouped = EXPECTED_MONTHLY.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  expect(out.includes(expected) || out.includes(grouped), `unexpected output: ${out.trim()}`);
   return out.trim().split("\n")[0];
 });
 

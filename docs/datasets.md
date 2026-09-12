@@ -1,6 +1,6 @@
 # Datasets
 
-Five datasets as CSV and JSON, under
+Six datasets as CSV and JSON, under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — free to use, share
 and adapt, including commercially, with credit.
 
@@ -9,10 +9,25 @@ Index: [`/datasets/index.json`](https://www.usmortgagecalc.com/datasets/index.js
 | ID | Title | Rows | Download |
 | --- | --- | ---: | --- |
 | `state-property-tax` | US State Property Tax Rates | 50 | [CSV](https://www.usmortgagecalc.com/datasets/state-property-tax.csv) · [JSON](https://www.usmortgagecalc.com/datasets/state-property-tax.json) |
+| `state-property-tax-history` | US State Property Tax: Annual Series 2010–2024 | 700 | [CSV](https://www.usmortgagecalc.com/datasets/state-property-tax-history.csv) · [JSON](https://www.usmortgagecalc.com/datasets/state-property-tax-history.json) |
 | `conforming-loan-limits` | Conforming Loan Limits | 1 | [CSV](https://www.usmortgagecalc.com/datasets/conforming-loan-limits.csv) · [JSON](https://www.usmortgagecalc.com/datasets/conforming-loan-limits.json) |
 | `fha-limits` | FHA Loan Limits and Premiums | 8 | [CSV](https://www.usmortgagecalc.com/datasets/fha-limits.csv) · [JSON](https://www.usmortgagecalc.com/datasets/fha-limits.json) |
 | `mortgage-insurance` | Mortgage Insurance Assumptions | 11 | [CSV](https://www.usmortgagecalc.com/datasets/mortgage-insurance.csv) · [JSON](https://www.usmortgagecalc.com/datasets/mortgage-insurance.json) |
 | `ownership-cost-assumptions` | Ownership Cost and Qualifying Assumptions | 10 | [CSV](https://www.usmortgagecalc.com/datasets/ownership-cost-assumptions.csv) · [JSON](https://www.usmortgagecalc.com/datasets/ownership-cost-assumptions.json) |
+
+### Two property tax datasets, on purpose
+
+`state-property-tax` is a current snapshot built from Census ACS **5-year**
+estimates — the larger sample, and the right input for comparing states at a
+point in time. `state-property-tax-history` is an annual series built from ACS
+**1-year** estimates, which can legitimately be differenced year on year where
+the 5-year series cannot, because consecutive 5-year releases overlap by four
+years of sample.
+
+They disagree for any given state. That is the two series measuring different
+things over different windows, not an error in either. 2020 is absent from the
+annual series because the Census Bureau published no standard 1-year estimates
+that year.
 
 ## Use these instead of the API for bulk work
 
@@ -29,8 +44,12 @@ curl -sO https://www.usmortgagecalc.com/datasets/state-property-tax.csv
 import pandas as pd
 
 states = pd.read_csv("https://www.usmortgagecalc.com/datasets/state-property-tax.csv")
-print(states.nlargest(5, "averageEffectiveRatePercent")[["state", "averageEffectiveRatePercent"]])
+print(states.nlargest(5, "avg_effective_tax_rate_percent")[["state", "avg_effective_tax_rate_percent"]])
 ```
+
+The column names are snake_case in the CSV, matching its header row. This
+example previously used camelCase names the file has never carried, which made
+it a `KeyError` for anyone who ran it.
 
 ## Attribution
 
