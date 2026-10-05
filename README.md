@@ -74,6 +74,8 @@ claude mcp add --transport http usmortgagecalc https://www.usmortgagecalc.com/mc
 No authentication, nothing to install. Claude Desktop, Cursor and VS Code
 configuration in [docs/mcp.md](docs/mcp.md).
 
+[US Mortgage Calculator on Smithery](https://smithery.ai/servers/devscriptify/usmortgagecalc)
+
 ### Your language
 
 ```sh
