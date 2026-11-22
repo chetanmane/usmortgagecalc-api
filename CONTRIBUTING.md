@@ -61,6 +61,19 @@ npm run verify
 The Postman collection is generated too — edit `scripts/build-postman.mjs`, not
 the JSON.
 
+## Refreshing the data
+
+When the platform refreshes its ACS dataset, the worked example changes with it.
+Update these together, or the nightly Verify run goes red:
+
+- `EXPECTED_MONTHLY` in `scripts/verify.mjs`
+- the worked examples in `README.md` and `docs/` (`quickstart.md`, `rest-api.md`):
+  total monthly cost, monthly property tax, property tax rate and
+  `totalAllPayments`
+
+Take the figures from a live response, not from arithmetic, then run
+`npm run sync` and `npm run verify`.
+
 ## Especially welcome
 
 **Documentation gaps.** If you had to read the spec, experiment, or guess to get
