@@ -79,24 +79,28 @@
                     "description": "Annual homeowners insurance premium in US dollars.",
                     "default": 1800,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 1000000
                   },
                   "monthlyHoa": {
                     "description": "Monthly homeowners association dues in US dollars.",
                     "default": 0,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 100000
                   },
                   "monthlyExtraPrincipal": {
                     "description": "Additional principal paid each month. Shortens the loan rather than lowering the payment.",
                     "default": 0,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 10000000
                   },
                   "state": {
                     "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
                     "type": "string",
-                    "minLength": 2
+                    "minLength": 2,
+                    "maxLength": 64
                   },
                   "propertyTaxRatePercent": {
                     "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
@@ -235,24 +239,28 @@
                     "description": "Annual homeowners insurance premium in US dollars.",
                     "default": 1800,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 1000000
                   },
                   "monthlyHoa": {
                     "description": "Monthly homeowners association dues in US dollars.",
                     "default": 0,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 100000
                   },
                   "monthlyExtraPrincipal": {
                     "description": "Additional principal paid each month. Shortens the loan rather than lowering the payment.",
                     "default": 0,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 10000000
                   },
                   "state": {
                     "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
                     "type": "string",
-                    "minLength": 2
+                    "minLength": 2,
+                    "maxLength": 64
                   },
                   "propertyTaxRatePercent": {
                     "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
@@ -400,7 +408,8 @@
                     "description": "Extra principal paid monthly.",
                     "default": 0,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 10000000
                   },
                   "creditScore": {
                     "description": "FHA only: sets the minimum down payment. 580+ qualifies for 3.5%.",
@@ -509,12 +518,14 @@
                   "homePrice": {
                     "description": "Home value in US dollars.",
                     "type": "number",
-                    "exclusiveMinimum": 0
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000000
                   },
                   "state": {
                     "description": "Full US state name, for example \"Texas\".",
                     "type": "string",
-                    "minLength": 2
+                    "minLength": 2,
+                    "maxLength": 64
                   }
                 },
                 "required": [
@@ -609,18 +620,21 @@
                   "annualGrossIncome": {
                     "description": "Household income before tax, in US dollars per year.",
                     "type": "number",
-                    "exclusiveMinimum": 0
+                    "exclusiveMinimum": 0,
+                    "maximum": 1000000000
                   },
                   "monthlyDebtPayments": {
                     "description": "Existing minimum monthly debt payments: car loans, student loans, credit card minimums. Excludes housing.",
                     "default": 0,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 10000000
                   },
                   "downPaymentAmount": {
                     "description": "Cash available for the down payment, in US dollars. A dollar amount, not a percentage.",
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 1000000000
                   },
                   "annualInterestRatePercent": {
                     "default": 6.5,
@@ -640,13 +654,15 @@
                     "description": "Annual homeowners insurance premium.",
                     "default": 1800,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 1000000
                   },
                   "monthlyHoa": {
                     "description": "Monthly HOA dues.",
                     "default": 0,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 100000
                   },
                   "frontEndRatioPercent": {
                     "description": "Maximum housing cost as a share of gross income. 28 is the conservative standard.",
@@ -665,7 +681,8 @@
                   "state": {
                     "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
                     "type": "string",
-                    "minLength": 2
+                    "minLength": 2,
+                    "maxLength": 64
                   },
                   "propertyTaxRatePercent": {
                     "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
@@ -766,7 +783,8 @@
                   "currentBalance": {
                     "description": "Remaining principal on the existing loan.",
                     "type": "number",
-                    "exclusiveMinimum": 0
+                    "exclusiveMinimum": 0,
+                    "maximum": 1000000000
                   },
                   "currentAnnualRatePercent": {
                     "description": "Interest rate on the existing loan.",
@@ -796,7 +814,8 @@
                   "closingCosts": {
                     "description": "Total cost to close the refinance, in US dollars.",
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 100000000
                   },
                   "financeClosingCosts": {
                     "description": "Roll closing costs into the new balance instead of paying cash.",
@@ -924,7 +943,8 @@
                     "description": "Annual homeowners insurance premium.",
                     "default": 1800,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 1000000
                   },
                   "escrowMonths": {
                     "description": "Months of taxes collected up front to open the escrow account.",
@@ -953,7 +973,8 @@
                   "state": {
                     "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
                     "type": "string",
-                    "minLength": 2
+                    "minLength": 2,
+                    "maxLength": 64
                   },
                   "propertyTaxRatePercent": {
                     "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
@@ -1081,18 +1102,21 @@
                     "description": "Annual homeowners insurance premium.",
                     "default": 1800,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 1000000
                   },
                   "monthlyHoa": {
                     "description": "Monthly HOA dues.",
                     "default": 0,
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 100000
                   },
                   "monthlyRent": {
                     "description": "Current monthly rent for a comparable home.",
                     "type": "number",
-                    "exclusiveMinimum": 0
+                    "exclusiveMinimum": 0,
+                    "maximum": 1000000
                   },
                   "annualRentIncreasePercent": {
                     "description": "Expected annual rent growth.",
@@ -1139,7 +1163,8 @@
                   "state": {
                     "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
                     "type": "string",
-                    "minLength": 2
+                    "minLength": 2,
+                    "maxLength": 64
                   },
                   "propertyTaxRatePercent": {
                     "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
@@ -1248,7 +1273,8 @@
                         "label": {
                           "description": "Name for this option, for example \"30-year fixed\".",
                           "type": "string",
-                          "minLength": 1
+                          "minLength": 1,
+                          "maxLength": 100
                         },
                         "input": {
                           "description": "Full monthly housing cost: principal, interest, taxes, insurance, PMI and HOA.",
@@ -1296,24 +1322,28 @@
                               "description": "Annual homeowners insurance premium in US dollars.",
                               "default": 1800,
                               "type": "number",
-                              "minimum": 0
+                              "minimum": 0,
+                              "maximum": 1000000
                             },
                             "monthlyHoa": {
                               "description": "Monthly homeowners association dues in US dollars.",
                               "default": 0,
                               "type": "number",
-                              "minimum": 0
+                              "minimum": 0,
+                              "maximum": 100000
                             },
                             "monthlyExtraPrincipal": {
                               "description": "Additional principal paid each month. Shortens the loan rather than lowering the payment.",
                               "default": 0,
                               "type": "number",
-                              "minimum": 0
+                              "minimum": 0,
+                              "maximum": 10000000
                             },
                             "state": {
                               "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
                               "type": "string",
-                              "minLength": 2
+                              "minLength": 2,
+                              "maxLength": 64
                             },
                             "propertyTaxRatePercent": {
                               "description": "Annual property tax as a percentage of home value. Omit and pass `state` instead to use that state's average.",
@@ -1425,7 +1455,8 @@
                   "state": {
                     "description": "Full US state name, for example \"Texas\". Used to look up the average property tax rate. Either this or propertyTaxRatePercent is required.",
                     "type": "string",
-                    "minLength": 2
+                    "minLength": 2,
+                    "maxLength": 64
                   }
                 },
                 "required": [
@@ -1693,6 +1724,24 @@
         "responses": {
           "200": {
             "description": "Assumptions with provenance."
+          }
+        }
+      }
+    },
+    "/api/v1/rates": {
+      "get": {
+        "operationId": "getRates",
+        "summary": "Current benchmark mortgage rates (weekly)",
+        "description": "The Freddie Mac Primary Mortgage Market Survey national average for 30-year and 15-year fixed mortgages. A weekly survey published Thursdays, not a live market rate and not a quote. The response states its publication date (asOf), how fresh that is for a weekly series (freshness: current, late or stale) and whether it was read live or served from the last good reading after an upstream failure (retrieval). Returns 503 with no figure when the source cannot be read and nothing is held.",
+        "tags": [
+          "reference"
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest weekly averages with source, as-of date and freshness."
+          },
+          "503": {
+            "description": "Source unavailable and no earlier reading held."
           }
         }
       }
