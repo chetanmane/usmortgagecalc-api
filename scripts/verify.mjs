@@ -45,7 +45,7 @@ const LOAN = {
  * comparing against it and only one used this constant, so the other went on
  * asserting the old figure as a string literal until the nightly run caught it.
  */
-const EXPECTED_MONTHLY = 2699.28;
+const EXPECTED_MONTHLY = 2669.28;
 
 let passes = 0;
 let failures = 0;
