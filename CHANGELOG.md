@@ -12,6 +12,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **The worked example moved again with the ACS 2020-2024 refresh.** The platform
+  rebuilt its state tax table from the 2020-2024 ACS 5-year release on Nov 7,
+  which moved Texas from 1.58% to 1.49% and the documented $400,000 example
+  from $2,699.28 a month to $2,669.28 (property tax $526.67 to $496.67). The
+  README, the quickstart and the REST reference are updated, along with the
+  stale `totalAllPayments` in the REST reference.
+- **The specs were behind production.** `spec/openapi.json` now includes
+  `/api/v1/rates` and the published input maximums, `spec/mcp-server.json` is
+  at 1.1.0, and the Postman collection has the new request.
 - **The worked example was out of date everywhere it appeared.** The platform
   rebuilt its state property tax table from a single U.S. Census Bureau ACS
   release, which moved Texas from 1.81% to 1.58% and the documented $400,000
