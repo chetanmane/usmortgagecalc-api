@@ -203,6 +203,31 @@
       "response": []
     },
     {
+      "name": "Current benchmark mortgage rates (weekly)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rates",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rates"
+          ]
+        },
+        "description": "The Freddie Mac Primary Mortgage Market Survey national average for 30-year and 15-year fixed mortgages. A weekly survey published Thursdays, not a live market rate and not a quote. The response states its publication date (asOf), how fresh that is for a weekly series (freshness: current, late or stale) and whether it was read live or served from the last good reading after an upstream failure (retrieval). Returns 503 with no figure when the source cannot be read and nothing is held."
+      },
+      "response": []
+    },
+    {
       "name": "Estimate property tax",
       "request": {
         "method": "POST",
