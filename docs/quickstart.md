@@ -16,14 +16,14 @@ curl -s https://www.usmortgagecalc.com/api/v1/calculate-mortgage \
 {
   "data": {
     "monthlyMortgage": 2022.62,
-    "monthlyPropertyTax": 526.67,
+    "monthlyPropertyTax": 496.67,
     "monthlyInsurance": 150,
     "monthlyPmi": 0,
-    "totalMonthlyCost": 2699.28,
+    "totalMonthlyCost": 2669.28,
     "loanAmount": 320000,
-    "propertyTaxRate": 1.58,
+    "propertyTaxRate": 1.49,
     "assumptions": {
-      "propertyTaxRatePercent": 1.58,
+      "propertyTaxRatePercent": 1.49,
       "propertyTaxSource": "U.S. Census Bureau, American Community Survey 5-year estimates"
     }
   },

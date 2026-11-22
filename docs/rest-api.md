@@ -37,6 +37,7 @@ safe to retry and to cache.
 | `GET` | `/api/v1/states` | All 50 states with rate, median value and estimated tax |
 | `GET` | `/api/v1/states/{state}` | One state's assessment rules, exemptions and appeal route |
 | `GET` | `/api/v1/assumptions` | Every rate, fee and threshold, each with a source and year |
+| `GET` | `/api/v1/rates` | Freddie Mac weekly benchmark 30- and 15-year rates, with publication date and freshness |
 | `GET` | `/api/v1/company` | Publisher details, machine-readable |
 | `GET` | `/api/health` | Liveness check |
 
@@ -77,23 +78,23 @@ curl -s https://www.usmortgagecalc.com/api/v1/calculate-mortgage \
 {
   "data": {
     "monthlyMortgage": 2022.62,
-    "monthlyPropertyTax": 526.67,
+    "monthlyPropertyTax": 496.67,
     "monthlyInsurance": 150,
     "monthlyPmi": 0,
     "monthlyHoa": 0,
-    "totalMonthlyCost": 2699.28,
+    "totalMonthlyCost": 2669.28,
 
     "loanAmount": 320000,
     "loanType": "conventional",
-    "propertyTaxRate": 1.58,
+    "propertyTaxRate": 1.49,
     "state": "Texas",
 
     "paymentsMade": 360,
     "totalInterestPaid": 408142.36,
-    "totalAllPayments": 971742.36,
+    "totalAllPayments": 960942.36,
 
     "assumptions": {
-      "propertyTaxRatePercent": 1.58,
+      "propertyTaxRatePercent": 1.49,
       "propertyTaxSource": "U.S. Census Bureau, American Community Survey 5-year estimates",
       "mortgageInsurance": "No conventional PMI estimated because down payment is 20% or more"
     },
@@ -113,7 +114,7 @@ Most calculation endpoints need to know the property tax rate, and accept either
 
 - `"state": "Texas"` — uses that state's average effective rate, and tells you
   which rate it used in `assumptions`; or
-- `"propertyTaxRatePercent": 1.58` — your own figure, if you have a better one.
+- `"propertyTaxRatePercent": 1.49` — your own figure, if you have a better one.
 
 Sending neither is an error. This is a runtime either/or rather than a required
 field, so the OpenAPI `required` list does not mention `state` — a detail worth
